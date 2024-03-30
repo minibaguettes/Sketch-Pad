@@ -2,7 +2,8 @@
 
 const body = document.querySelector('body');
 let gridContainer = document.getElementById('grid-container');
-let userInput;
+let userInput = 16;
+let temp;
 
 // create a new grid button
 const newGridBtn = document.createElement('button');
@@ -14,15 +15,21 @@ body.appendChild(newGridBtn);
 /* --- INIT --- */
 
 // initial grid: 16x16
-createGrid(16);
+createGrid(userInput);
 
 
 /* --- EVENT LISTENERS --- */
 
 // new grid button pressed -> erase current grid and generate new grid
 newGridBtn.addEventListener("click", function() {
+  temp = userInput;
   userInput = prompt('Enter a number: ');
   promptUser(userInput);
+  // if prompt is exited, do not change grid size
+  if (userInput == null) {
+    userInput = temp;
+  }
+  console.log(temp);
   removeGrid();
   createGrid(userInput);
 });
