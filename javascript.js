@@ -23,13 +23,12 @@ createGrid(userInput);
 // new grid button pressed -> erase current grid and generate new grid
 newGridBtn.addEventListener("click", function() {
   temp = userInput;
-  userInput = prompt('Enter a number: ');
+  userInput = prompt('Enter a number from 1 to 100: ');
   promptUser(userInput);
   // if prompt is exited, do not change grid size
   if (userInput == null) {
     userInput = temp;
   }
-  console.log(temp);
   removeGrid();
   createGrid(userInput);
 });
@@ -66,11 +65,15 @@ function removeGrid() {
 // check if user input is a number or is less than 100
 function promptUser(input) {
   if (isNaN(input)) {
-    userInput = prompt('Input not number. Enter a number: ');
+    userInput = prompt('That is not a number. Please enter a number from 1 to 100: ');
     promptUser(userInput);
   }
   else if (input > 100) {
-    userInput = prompt('Less than 100. Enter a number: ');
+    userInput = prompt('Must be less than 101. Please enter a number from 1 to 100: ');
+    promptUser(userInput);
+  }
+  else if (input < 1 && input != null) {
+    userInput = prompt('Must be larger than 0. Please enter a number from 1 to 100: ');
     promptUser(userInput);
   }
 }
