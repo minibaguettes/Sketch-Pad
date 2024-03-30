@@ -22,6 +22,7 @@ html, body {
   transform: translate(-50%, -50%);
   display: flex;
   flex-wrap: wrap;
+  background-color: black;
 }
 
 /* var(--size) passed from js createGrid(w)  */
@@ -31,8 +32,4 @@ html, body {
   height: calc(100%/var(--size));
   outline: 1px solid black;
   background-color:white;
-}
-
-.square-color {
-  background-color: cadetblue;
 }

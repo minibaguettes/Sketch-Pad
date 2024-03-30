@@ -27,10 +27,12 @@ newGridBtn.addEventListener("click", function() {
   createGrid(userInput);
 });
 
-// look for grid mouse hover -> color
+/* --- extra credit --- */
+// look for grid mouse hover -> color randomly and decrease opacity by 10% each time 
 document.addEventListener("mouseover", (event) => {
   if (event.target.classList.contains('square')) {
-    event.target.classList.add('square-color');
+    event.target.style.backgroundColor = 'rgb(' + [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)].join(',') + ')';
+    event.target.style.opacity =  getComputedStyle(event.target).opacity - 0.1;
   }
 });
 
