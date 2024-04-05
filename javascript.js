@@ -10,6 +10,7 @@ const paint = document.getElementById('paint');
 const etchSketch = document.getElementById('etch-sketch');
 const eraser = document.getElementById('eraser');
 const clear = document.getElementById('clear');
+const outline = document.getElementById('outline');
 
 const colorTools = document.getElementById('color-tools');
 const colorPicker = document.getElementById("color-picker");
@@ -22,20 +23,17 @@ for (let i = 0; i < 6; i++) {
   colorHistory.classList.add('color');
   colorHistory.classList.add('size');
   colorHistory.classList.add('white');
-  colorHistory.textContent = i+1;
+  colorHistory.textContent = i;
   colorTools.appendChild(colorHistory);
 }
 
-let colorRandom = document.createElement('button');
-colorRandom.classList.add('color');
-colorRandom.classList.add('size');
-colorTools.appendChild(colorRandom);
+const colorRandom = document.getElementById('random-color');
 
 let currColor = '#000000';  // default color is black
 let lastColor = '';
-let userInput = 25;         // default 25x25
+let userInput = 50;         // default 25x25
 let temp;                   // temp to hold userInput
-let colorIndex = 1;         // variable of index of color history used to loop through
+let colorIndex = 0;         // variable of index of color history used to loop through
 let mode = 'paint';         // mode used to distinguish between paiting with selected color or painting with white (ERASER)
 
 // create a new grid button
@@ -71,16 +69,17 @@ newGridBtn.addEventListener("click", function() {
 
 // main tools - hover and display text on bottom
 document.addEventListener("mouseover", (e) => {
-  if (e.target.id == 'paint') {
+  let el = e.target;
+  if (el.id == 'paint') {
     botText.textContent = 'paint';
   }
-  else if (e.target.id == 'etch-sketch') {
+  else if (el.id == 'etch-sketch') {
     botText.textContent = 'etch sketch';
   }
-  else if (e.target.id == 'eraser') {
+  else if (el.id == 'eraser') {
     botText.textContent = 'eraser';
   }
-  else if (e.target.id == 'clear') {
+  else if (el.id == 'clear') {
     botText.textContent = 'clear';
   }
   else {
@@ -90,7 +89,8 @@ document.addEventListener("mouseover", (e) => {
 
 // main tools - click to select
 document.addEventListener("click", (e) => {
-  if (e.target.id == 'paint' || e.target.id == 'eraser') {
+  let el = e.target;
+  if (el.id == 'paint' || el.id == 'eraser') {
     // enable paint click
     gridContainer.addEventListener("mousedown", paintClick);
     gridContainer.addEventListener("mouseover", paintClick);
@@ -98,9 +98,9 @@ document.addEventListener("click", (e) => {
     for (var i = 0; i < gridContainer.childNodes.length; i++) {
       gridContainer.childNodes[i].removeEventListener("mouseover", paintDrag);
     }
-    mode = e.target.id;
+    mode = el.id;
   }
-  else if (e.target.id == 'etch-sketch') {
+  else if (el.id == 'etch-sketch') {
     // disable paint click
     gridContainer.removeEventListener("mousedown", paintClick);
     gridContainer.removeEventListener("mouseover", paintClick);
@@ -109,7 +109,22 @@ document.addEventListener("click", (e) => {
       gridContainer.childNodes[i].addEventListener("mouseover", paintDrag);
     }
   }
-  else if (e.target.id == 'clear') {
+  else if (el.id == 'clear') {
+    for (var i = 0; i < gridContainer.childNodes.length; i++) {
+      gridContainer.childNodes[i].style.backgroundColor = '#FFFFFF';
+    }
+  }
+  else if (el.id == 'outline') {
+    if (gridContainer.childNodes[0].classList.contains('outline')) {
+      for (var i = 0; i < gridContainer.childNodes.length; i++) {
+        gridContainer.childNodes[i].classList.remove('outline');
+      }
+    }
+    else {
+      for (var i = 0; i < gridContainer.childNodes.length; i++) {
+        gridContainer.childNodes[i].classList.add('outline');
+      }
+    }
   }
 });
 
@@ -123,13 +138,15 @@ colorPicker.addEventListener("input", function() {
 
 // select existing color
 colorTools.addEventListener("click", (e) => {
-  if (e.target == colorTools.children[7]) {
-    randomColor(e);
-  }
-  if (!e.target.classList.contains('white')) {  // check if selected color history element still has default class (has not yet looped the queue)
+  // check if selected color history element still has default class (user has not selected more colors than slots)
+  if (!e.target.classList.contains('white')) {
     currColor = e.target.style.backgroundColor;
     lastColor = currColor;
   }
+});
+
+colorRandom.addEventListener("click", (e) => {
+  randomColor(e);
 });
 
 // detect mouse down to paint
@@ -194,7 +211,6 @@ function erase() {
 // normal paint tool - click
 function paintClick() {
   if (isColoring) {
-    console.log('painting');
     if (mode == 'paint') {
       this.style.backgroundColor = currColor;
     }
@@ -215,10 +231,10 @@ function paintDrag() {
 function shiftColorHistory() {
   if (currColor != lastColor) {                                         // if color has changed
     if (colorTools.querySelectorAll('.white').length == 0) {            // if all color history elements have been changed (already cycled through the queue),
-      for (var i = 6; i >= 2; i--) {         //  then in descending order, replace the preceding element's color
+      for (var i = 5; i > 0; i--) {         //  then in descending order, replace the preceding element's color
         colorTools.children[i].style.backgroundColor = colorTools.children[i-1].style.backgroundColor;
       }
-      colorIndex = 1;
+      colorIndex = 0;
     }
     colorTools.children[colorIndex].style.backgroundColor = currColor;  // set next color history 
     colorTools.children[colorIndex].classList.remove('white');          // remove default class; when all elements no longer have this class, it will return to front of queue
@@ -229,8 +245,8 @@ function shiftColorHistory() {
 
 function randomColor(e) {
   e.target.style.backgroundColor = 'rgb(' + [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)].join(',') + ')';
-  e.target.style.opacity =  getComputedStyle(e.target).opacity - 0.1;
-  shiftColorHistory();
+  lastColor = currColor;
+  currColor =  e.target.style.backgroundColor;
 }
 
 // ODIN - extra credit

@@ -119,6 +119,9 @@ html, body {
   position: relative;
   width: calc(100%/var(--size));
   height: calc(100%/var(--size));
-  outline: 1px solid black;
   background-color:white;
+}
+
+.outline {
+  outline: 1px solid rgb(189, 189, 189);
 }
