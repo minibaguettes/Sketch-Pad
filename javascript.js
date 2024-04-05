@@ -1,24 +1,60 @@
+/* ---------------------------- */
 /* --- VARIABLES / ELEMENTS --- */
+/* ---------------------------- */
 
-const body = document.querySelector('body');
+const topTools = document.getElementById('top-tools');
+const botText = document.getElementById('bot-text');
+
+const tools = document.getElementById('tools');
+const paint = document.getElementById('paint');
+const etchSketch = document.getElementById('etch-sketch');
+const eraser = document.getElementById('eraser');
+const clear = document.getElementById('clear');
+
+const colorTools = document.getElementById('color-tools');
+const colorPicker = document.getElementById("color-picker");
+
 let gridContainer = document.getElementById('grid-container');
-let userInput = 16;
-let temp;
+
+// generate color boxes
+for (let i = 0; i < 6; i++) {
+  let colorHistory = document.createElement('button');
+  colorHistory.classList.add('color');
+  colorHistory.classList.add('size');
+  colorHistory.classList.add('white');
+  colorHistory.textContent = i+1;
+  colorTools.appendChild(colorHistory);
+}
+
+let colorRandom = document.createElement('button');
+colorRandom.classList.add('color');
+colorRandom.classList.add('size');
+colorTools.appendChild(colorRandom);
+
+let currColor = '#000000';  // default color is black
+let lastColor = '';
+let userInput = 25;         // default 25x25
+let temp;                   // temp to hold userInput
+let colorIndex = 1;         // variable of index of color history used to loop through
+let mode = 'paint';         // mode used to distinguish between paiting with selected color or painting with white (ERASER)
 
 // create a new grid button
 const newGridBtn = document.createElement('button');
 newGridBtn.textContent = 'New Grid';
 newGridBtn.setAttribute('id','new-grid-btn');
-body.appendChild(newGridBtn);
+topTools.appendChild(newGridBtn);
 
-
-/* --- INIT --- */
+/* ----------------------- */
+/* --------- INIT -------- */
+/* ----------------------- */
 
 // initial grid: 16x16
 createGrid(userInput);
 
-
+/* ----------------------- */
 /* --- EVENT LISTENERS --- */
+/* ----------------------- */
+
 
 // new grid button pressed -> erase current grid and generate new grid
 newGridBtn.addEventListener("click", function() {
@@ -33,23 +69,96 @@ newGridBtn.addEventListener("click", function() {
   createGrid(userInput);
 });
 
-/* --- extra credit --- */
-// look for grid mouse hover -> color randomly and decrease opacity by 10% each time 
-document.addEventListener("mouseover", (event) => {
-  if (event.target.classList.contains('square')) {
-    event.target.style.backgroundColor = 'rgb(' + [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)].join(',') + ')';
-    event.target.style.opacity =  getComputedStyle(event.target).opacity - 0.1;
+// main tools - hover and display text on bottom
+document.addEventListener("mouseover", (e) => {
+  if (e.target.id == 'paint') {
+    botText.textContent = 'paint';
+  }
+  else if (e.target.id == 'etch-sketch') {
+    botText.textContent = 'etch sketch';
+  }
+  else if (e.target.id == 'eraser') {
+    botText.textContent = 'eraser';
+  }
+  else if (e.target.id == 'clear') {
+    botText.textContent = 'clear';
+  }
+  else {
+    botText.textContent = 'for help, click help';
   }
 });
 
+// main tools - click to select
+document.addEventListener("click", (e) => {
+  if (e.target.id == 'paint' || e.target.id == 'eraser') {
+    // enable paint click
+    gridContainer.addEventListener("mousedown", paintClick);
+    gridContainer.addEventListener("mouseover", paintClick);
+    // disable paint drag
+    for (var i = 0; i < gridContainer.childNodes.length; i++) {
+      gridContainer.childNodes[i].removeEventListener("mouseover", paintDrag);
+    }
+    mode = e.target.id;
+  }
+  else if (e.target.id == 'etch-sketch') {
+    // disable paint click
+    gridContainer.removeEventListener("mousedown", paintClick);
+    gridContainer.removeEventListener("mouseover", paintClick);
+    // enable paint drag
+    for (var i = 0; i < gridContainer.childNodes.length; i++) {
+      gridContainer.childNodes[i].addEventListener("mouseover", paintDrag);
+    }
+  }
+  else if (e.target.id == 'clear') {
+  }
+});
 
+// select new color
+colorPicker.addEventListener("input", function() {
+  lastColor = currColor;
+  currColor = colorPicker.value;
+  console.log(lastColor);
+  console.log(currColor);
+});
+
+// select existing color
+colorTools.addEventListener("click", (e) => {
+  if (e.target == colorTools.children[7]) {
+    randomColor(e);
+  }
+  if (!e.target.classList.contains('white')) {  // check if selected color history element still has default class (has not yet looped the queue)
+    currColor = e.target.style.backgroundColor;
+    lastColor = currColor;
+  }
+});
+
+// detect mouse down to paint
+let isColoring = false;
+gridContainer.addEventListener("mousedown", (e) => {
+  isColoring = true;
+  e.preventDefault(); // prevent 'not-allowed' cursor
+});
+
+['mouseup', 'mouseleave'].forEach(function(ev) {
+  gridContainer.addEventListener(ev, (e) => {
+    isColoring = false;
+  });
+})
+
+
+
+/* ----------------- */
 /* --- FUNCTIONS --- */
+/* ----------------- */
+
 
 // create a wxw grid
 function createGrid(w) {
   for (let i = 0; i < (w*w); i++) {
     let square = document.createElement('div');
     square.classList.add('square');
+    square.addEventListener('mouseover', paintClick);
+    square.addEventListener('mousedown', paintClick);
     document.documentElement.style.setProperty(`--size`, `${w}`); // create css variable 'size' and set it to user's desired value
     gridContainer.appendChild(square);
   }
@@ -77,3 +186,58 @@ function promptUser(input) {
     promptUser(userInput);
   }
 }
+
+function erase() {
+  console.log('erasing');
+}
+
+// normal paint tool - click
+function paintClick() {
+  if (isColoring) {
+    console.log('painting');
+    if (mode == 'paint') {
+      this.style.backgroundColor = currColor;
+    }
+    else if (mode == 'eraser') {
+      this.style.backgroundColor = '#FFFFFF';
+    }
+    shiftColorHistory();
+  }
+}
+
+// etch sketch paint tool - drag, no click
+function paintDrag() {
+  this.style.backgroundColor = currColor;
+  shiftColorHistory();
+}
+
+// when selecting another color, add color to colorHistory 'queue' and remove last in 'queue'
+function shiftColorHistory() {
+  if (currColor != lastColor) {                                         // if color has changed
+    if (colorTools.querySelectorAll('.white').length == 0) {            // if all color history elements have been changed (already cycled through the queue),
+      for (var i = 6; i >= 2; i--) {         //  then in descending order, replace the preceding element's color
+        colorTools.children[i].style.backgroundColor = colorTools.children[i-1].style.backgroundColor;
+      }
+      colorIndex = 1;
+    }
+    colorTools.children[colorIndex].style.backgroundColor = currColor;  // set next color history 
+    colorTools.children[colorIndex].classList.remove('white');          // remove default class; when all elements no longer have this class, it will return to front of queue
+    colorIndex++;
+    lastColor = currColor;
+  }
+}
+
+function randomColor(e) {
+  e.target.style.backgroundColor = 'rgb(' + [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)].join(',') + ')';
+  e.target.style.opacity =  getComputedStyle(e.target).opacity - 0.1;
+  shiftColorHistory();
+}
+
+// ODIN - extra credit
+// randomly generate colors; gets darker by 10% each time (assuming event is gridContainer rather than square)
+// function randomColor(event) {
+//   if (event.target.classList.contains('square')) {
+//     event.target.style.backgroundColor = 'rgb(' + [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)].join(',') + ')';
+//     event.target.style.opacity =  getComputedStyle(event.target).opacity - 0.1;
+//   }
+// }
