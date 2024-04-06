@@ -5,14 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
   <script src="javascript.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.0/html2canvas.min.js" integrity="sha512-UcDEnmFoMh0dYHu0wGsf5SKB7z7i5j3GuXHCnb3i4s44hfctoLihr896bxM0zL7jGkcHQXXrJsFIL62ehtd6yQ==" crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
   <title>Sketch!</title>
 </head>
 <body>
   <div id="app-body">
     <div id="top">
-      <div id="top-tools"></div>
+      <div id="top-title"></div>
+      <div id="top-tools">
+        <button onclick="takeScreenShot()">Save</button>
+      </div>
     </div>
-    <div id="main">
+    <div id="main" >
       <div id="tools">
         <button id="paint" class="size">paint</button>
         <button id="etch-sketch" class="size">etchsktch</button>
@@ -24,7 +29,7 @@
         <button id="random-color" class="size">random color</button>
       </div>
       <div id="screen">
-        <div id="grid-container"></div>
+        <div id="grid-container" class="capture"></div>
       </div>
     </div>
     <div id="bot">
