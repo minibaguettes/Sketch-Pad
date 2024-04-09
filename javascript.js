@@ -3,10 +3,11 @@
 /* ---------------------------- */
 
 const topTitle = document.getElementById('top-title');
-const topTitleText = document.createElement('p');
-topTitleText.textContent = 'untitled';
-topTitleText.setAttribute('id', 'top-title-text');
-topTitle.appendChild(topTitleText);
+// const topTitleText = document.createElement('p');
+// topTitleText.textContent = 'untitled';
+// topTitleText.setAttribute('id', 'top-title-text');
+// topTitle.appendChild(topTitleText);
+topTitle.textContent = 'untitled';
 const topTools = document.getElementById('top-tools');
 const botText = document.getElementById('bot-text');
 
@@ -17,10 +18,24 @@ const eraser = document.getElementById('eraser');
 const clear = document.getElementById('clear');
 const outline = document.getElementById('outline');
 
-const colorTools = document.getElementById('color-tools');
 const colorPicker = document.getElementById("color-picker");
+const colorDefault = document.getElementById('color-default');
+const colorTools = document.getElementById('color-tools');
 
 let gridContainer = document.getElementById('grid-container');
+
+// generate default colors 
+let defaultColors1 = ['#000000', '#7f7f7f', '#880015', '#ed1c24', '#ff7f27', '#fff200', '#22b14c', '#22b14c', '#3f48cc', '#a349a4'];
+let defaultColors2 = ['#ffffff', '#a349a4', '#b97a57', '#ffaec9', '#ffc90e', '#efe4b0', '#b5e61d', '#99d9ea', '#7092be', '#c8bfe7'];
+
+for (let i = 0; i < defaultColors1.length; i++) {
+  let color = document.createElement('button');
+  color.classList.add('color');
+  color.classList.add('size');
+  color.style.backgroundColor = defaultColors1[i];
+  color.setAttribute("id", defaultColors1[i]);
+  colorDefault.appendChild(color);
+}
 
 // generate color boxes
 for (let i = 0; i < 6; i++) {
@@ -75,7 +90,7 @@ newGridBtn.addEventListener("click", function() {
 // main tools - hover and display text on bottom
 document.addEventListener("mouseover", (e) => {
   let el = e.target;
-  let text = '';
+  let text = 'MiniBaguettes';
   if (el.id == 'paint') {
     text = 'paint';
   }
@@ -158,6 +173,12 @@ colorPicker.addEventListener("input", function() {
   currColor = colorPicker.value;
   console.log(lastColor);
   console.log(currColor);
+});
+
+// select default color
+colorDefault.addEventListener("click", (e) => {
+  currColor = e.target.style.backgroundColor;
+  lastColor = currColor;
 });
 
 // select existing color
