@@ -16,7 +16,9 @@ const paint = document.getElementById('paint');
 const etchSketch = document.getElementById('etch-sketch');
 const eraser = document.getElementById('eraser');
 const clear = document.getElementById('clear');
-const outline = document.getElementById('outline');
+const outline = document.getElementById('outline'); 
+let activeTool = paint;
+activeTool.classList.add('active-tool');
 
 const colorPicker = document.getElementById("color-picker");
 const colorDefault = document.getElementById('color-default');
@@ -25,29 +27,44 @@ const colorTools = document.getElementById('color-tools');
 let gridContainer = document.getElementById('grid-container');
 
 // generate default colors 
-let defaultColors1 = ['#000000', '#7f7f7f', '#880015', '#ed1c24', '#ff7f27', '#fff200', '#22b14c', '#22b14c', '#3f48cc', '#a349a4'];
+let defaultColors1 = ['#000000', '#7f7f7f', '#880015', '#ed1c24', '#ff7f27', '#fff200', '#22b14c', '#00a2e8', '#3f48cc', '#a349a4'];
 let defaultColors2 = ['#ffffff', '#a349a4', '#b97a57', '#ffaec9', '#ffc90e', '#efe4b0', '#b5e61d', '#99d9ea', '#7092be', '#c8bfe7'];
+
+let colorDefault1 = document.createElement('div');
+let colorDefault2 = document.createElement('div');
+colorDefault.appendChild(colorDefault1);
+colorDefault.appendChild(colorDefault2);
 
 for (let i = 0; i < defaultColors1.length; i++) {
   let color = document.createElement('button');
-  color.classList.add('color');
   color.classList.add('size');
+  color.classList.add('color-border');
   color.style.backgroundColor = defaultColors1[i];
   color.setAttribute("id", defaultColors1[i]);
-  colorDefault.appendChild(color);
+  colorDefault1.appendChild(color);
+}
+
+for (let i = 0; i < defaultColors2.length; i++) {
+  let color = document.createElement('button');
+  color.classList.add('size');
+  color.classList.add('color-border');
+  color.style.backgroundColor = defaultColors2[i];
+  color.setAttribute("id", defaultColors2[i]);
+  colorDefault2.appendChild(color);
 }
 
 // generate color boxes
-for (let i = 0; i < 6; i++) {
+for (let i = 0; i < 10; i++) {
   let colorHistory = document.createElement('button');
-  colorHistory.classList.add('color');
   colorHistory.classList.add('size');
-  colorHistory.classList.add('white');
-  colorHistory.textContent = i;
+  colorHistory.classList.add('empty');
+  colorHistory.classList.add('color-border');
   colorTools.appendChild(colorHistory);
 }
 
-const colorRandom = document.getElementById('random-color');
+const randomColor = document.getElementById('random-color');
+randomColor.style.backgroundColor = 'empty';
+
 
 let currColor = '#000000';  // default color is black
 let lastColor = '';
@@ -121,6 +138,12 @@ document.addEventListener("mouseover", (e) => {
 // main tools - click to select
 document.addEventListener("click", (e) => {
   let el = e.target;
+  if (el.id != activeTool.id && el.id == 'paint' || el.id == 'etch-sketch' || el.id == 'eraser') {
+    activeTool.classList.remove('active-tool');
+    activeTool = e.target;
+    activeTool.classList.add('active-tool');
+  }
+  
   // paint, eraser
   if (el.id == 'paint' || el.id == 'eraser') {
     // enable paint click
@@ -132,6 +155,7 @@ document.addEventListener("click", (e) => {
     }
     mode = el.id;
   }
+
   // etch sketch brush
   else if (el.id == 'etch-sketch') {
     // disable paint click
@@ -142,12 +166,14 @@ document.addEventListener("click", (e) => {
       gridContainer.childNodes[i].addEventListener("mouseover", paintDrag);
     }
   }
+  
   // clear screen
   else if (el.id == 'clear') {
     for (var i = 0; i < gridContainer.childNodes.length; i++) {
       gridContainer.childNodes[i].style.backgroundColor = '#FFFFFF';
     }
   }
+
   // toggle grid outline
   // when sending html to canvas via html2canvas, the container must have background color in order to see grid
   //  so add/remove outline class to/from squares AND add/remove background color class to/from gridContainer
@@ -164,6 +190,7 @@ document.addEventListener("click", (e) => {
         gridContainer.childNodes[i].classList.add('outline');
       }
     }
+    el.classList.toggle('active-tool'); // if outline is active, set bg color; if outline is disabled, default color
   }
 });
 
@@ -184,14 +211,14 @@ colorDefault.addEventListener("click", (e) => {
 // select existing color
 colorTools.addEventListener("click", (e) => {
   // check if selected color history element still has default class (user has not selected more colors than slots)
-  if (!e.target.classList.contains('white')) {
+  if (!e.target.classList.contains('empty')) {
     currColor = e.target.style.backgroundColor;
     lastColor = currColor;
   }
 });
 
-colorRandom.addEventListener("click", (e) => {
-  randomColor(e);
+randomColor.addEventListener("click", (e) => {
+  getRandomColor(e);
 });
 
 // detect mouse down to paint
@@ -272,25 +299,31 @@ function paintDrag() {
   shiftColorHistory();
 }
 
+let colorHistoryList = [];
+
 // when selecting another color, add color to colorHistory 'queue' and remove last in 'queue'
 function shiftColorHistory() {
-  if (currColor != lastColor) {                                         // if color has changed
-    if (colorTools.querySelectorAll('.white').length == 0) {            // if all color history elements have been changed (already cycled through the queue),
-      for (var i = 5; i > 0; i--) {         //  then in descending order, replace the preceding element's color and id
-        colorTools.children[i].style.backgroundColor = colorTools.children[i-1].style.backgroundColor;
-        colorTools.children[i].setAttribute('id', colorTools.children[i-1].getAttribute('id'));
+  if (currColor != lastColor) {                                           // if color has changed
+    if (!colorHistoryList.includes(currColor)) {                          // if color history array already contains newly selected color, do not add again
+      if (colorTools.querySelectorAll('.empty').length == 0) {            // if all color history elements have been changed (already cycled through the queue),
+        for (var i = colorTools.children.length - 1; i > 0; i--) {        //  then in descending order, replace the preceding element's color and id
+          colorTools.children[i].style.backgroundColor = colorTools.children[i-1].style.backgroundColor;
+          colorTools.children[i].setAttribute('id', colorTools.children[i-1].getAttribute('id'));
+        }
+        colorIndex = 0;
       }
-      colorIndex = 0;
+      colorTools.children[colorIndex].style.backgroundColor = currColor;  // set next color history 
+      colorTools.children[colorIndex].classList.remove('empty');          // remove default class; when all elements no longer have this class, it will return to front of queue
+      colorTools.children[colorIndex].setAttribute('id', currColor);      // set id to color hex
+      colorIndex++;
+      lastColor = currColor;
     }
-    colorTools.children[colorIndex].style.backgroundColor = currColor;  // set next color history 
-    colorTools.children[colorIndex].classList.remove('white');          // remove default class; when all elements no longer have this class, it will return to front of queue
-    colorTools.children[colorIndex].setAttribute('id', currColor);      // set id to color hex
-    colorIndex++;
-    lastColor = currColor;
   }
+  let arr = Array.from(colorTools.children).map(x => x.id);               // update array with current color history
+  colorHistoryList = arr.filter(Boolean);
 }
 
-function randomColor(e) {
+function getRandomColor(e) {
   e.target.style.backgroundColor = 'rgb(' + [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)].join(',') + ')';
   lastColor = currColor;
   currColor =  e.target.style.backgroundColor;
@@ -298,7 +331,7 @@ function randomColor(e) {
 
 // ODIN - extra credit
 // randomly generate colors; gets darker by 10% each time (assuming event is gridContainer rather than square)
-// function randomColor(event) {
+// function getRandomColor(event) {
 //   if (event.target.classList.contains('square')) {
 //     event.target.style.backgroundColor = 'rgb(' + [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)].join(',') + ')';
 //     event.target.style.opacity =  getComputedStyle(event.target).opacity - 0.1;
