@@ -12,18 +12,18 @@
 <body>
   <div id="app-body">
     <div id="top">
-      <div id="top-title"></div>
+      <div id="top-title">Sketch!</div>
       <div id="top-tools">
-        <button onclick="takeScreenShot()">Save</button>
+        <button id='save' onclick="takeScreenShot()">Save</button>
       </div>
     </div>
     <div id="main" >
       <div id="tools">
-        <button id="paint" class="size">paint</button>
-        <button id="etch-sketch" class="size">etchsktch</button>
-        <button id="eraser" class="size">eraser</button>
-        <button id="clear" class="size">clear</button>
-        <button id="outline" class="size">outline</button>
+        <button id="paint" class="size"></button>
+        <button id="etch-sketch" class="size"></button>
+        <button id="eraser" class="size"></button>
+        <button id="clear" class="size"></button>
+        <button id="outline" class="size"></button>
       </div>
       <div id="screen">
         <div id="grid-container" class="capture"></div>
@@ -38,7 +38,10 @@
         <div id="color-default"></div>
         <div id="color-tools"></div>
       </div>
-      <div id="bot-text"></div>
+      <div id="bot2">
+        <div id="bot-text">minibaguettes, 2024</div>
+        <div id="grid-info"></div>
+      </div>
     </div>
   </div>
 </body>

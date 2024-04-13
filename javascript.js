@@ -1,16 +1,15 @@
-/* ---------------------------- */
-/* --- VARIABLES / ELEMENTS --- */
-/* ---------------------------- */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~ VARIABLES / ELEMENTS / PREPARATION ~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-const topTitle = document.getElementById('top-title');
-// const topTitleText = document.createElement('p');
-// topTitleText.textContent = 'untitled';
-// topTitleText.setAttribute('id', 'top-title-text');
-// topTitle.appendChild(topTitleText);
-topTitle.textContent = 'untitled';
+
+/* top section - title, settings */
+
 const topTools = document.getElementById('top-tools');
-const botText = document.getElementById('bot-text');
 
+/* middle section - paint tools, screen */
+
+// tools
 const tools = document.getElementById('tools');
 const paint = document.getElementById('paint');
 const etchSketch = document.getElementById('etch-sketch');
@@ -20,16 +19,20 @@ const outline = document.getElementById('outline');
 let activeTool = paint;
 activeTool.classList.add('active-tool');
 
-const colorPicker = document.getElementById("color-picker");
-const colorDefault = document.getElementById('color-default');
-const colorTools = document.getElementById('color-tools');
-
+// screen
 let gridContainer = document.getElementById('grid-container');
 
-// generate default colors 
+/* bottom section - color choices, bottom info */
+
+// get new colors
+const colorPicker = document.getElementById("color-picker");
+const randomColor = document.getElementById('random-color');
+randomColor.style.backgroundColor = 'empty';
+
+// default colors 
+const colorDefault = document.getElementById('color-default');
 let defaultColors1 = ['#000000', '#7f7f7f', '#880015', '#ed1c24', '#ff7f27', '#fff200', '#22b14c', '#00a2e8', '#3f48cc', '#a349a4'];
 let defaultColors2 = ['#ffffff', '#a349a4', '#b97a57', '#ffaec9', '#ffc90e', '#efe4b0', '#b5e61d', '#99d9ea', '#7092be', '#c8bfe7'];
-
 let colorDefault1 = document.createElement('div');
 let colorDefault2 = document.createElement('div');
 colorDefault.appendChild(colorDefault1);
@@ -53,7 +56,8 @@ for (let i = 0; i < defaultColors2.length; i++) {
   colorDefault2.appendChild(color);
 }
 
-// generate color boxes
+// color history boxes
+const colorTools = document.getElementById('color-tools');
 for (let i = 0; i < 10; i++) {
   let colorHistory = document.createElement('button');
   colorHistory.classList.add('size');
@@ -62,16 +66,22 @@ for (let i = 0; i < 10; i++) {
   colorTools.appendChild(colorHistory);
 }
 
-const randomColor = document.getElementById('random-color');
-randomColor.style.backgroundColor = 'empty';
+// bottom text info
+const botText = document.getElementById('bot-text');
+const gridInfo = document.getElementById('grid-info');
+let userInput = 50;         // default grid size: 50x50
+gridInfo.textContent = 'canvas size: ' + userInput;
 
+/* initialization */
 
 let currColor = '#000000';  // default color is black
 let lastColor = '';
-let userInput = 50;         // default 25x25
 let temp;                   // temp to hold userInput
 let colorIndex = 0;         // variable of index of color history used to loop through
 let mode = 'paint';         // mode used to distinguish between paiting with selected color or painting with white (ERASER)
+
+// convert rgb values to hex
+const rgb2hex = (rgb) => `#${rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/).slice(1).map(n => parseInt(n, 10).toString(16).padStart(2, '0')).join('')}`
 
 // create a new grid button
 const newGridBtn = document.createElement('button');
@@ -79,16 +89,13 @@ newGridBtn.textContent = 'New Grid';
 newGridBtn.setAttribute('id','new-grid-btn');
 topTools.appendChild(newGridBtn);
 
-/* ----------------------- */
-/* --------- INIT -------- */
-/* ----------------------- */
-
-// initial grid: 16x16
+// create the grid
 createGrid(userInput);
 
-/* ----------------------- */
-/* --- EVENT LISTENERS --- */
-/* ----------------------- */
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~ EVENT LISTENERS ~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 
 // new grid button pressed -> erase current grid and generate new grid
@@ -102,12 +109,19 @@ newGridBtn.addEventListener("click", function() {
   }
   removeGrid();
   createGrid(userInput);
+  gridInfo.textContent = 'canvas size: ' + userInput;
 });
 
 // main tools - hover and display text on bottom
 document.addEventListener("mouseover", (e) => {
   let el = e.target;
-  let text = 'MiniBaguettes';
+  let text = 'minibaguettes, 2024';
+  if (el.id == 'save') {
+    text = 'save image';
+  }
+  else if (el.id == 'new-grid-btn') {
+    text = 'new grid (any number from 1 to 100)';
+  }
   if (el.id == 'paint') {
     text = 'paint';
   }
@@ -118,16 +132,16 @@ document.addEventListener("mouseover", (e) => {
     text = 'eraser';
   }
   else if (el.id == 'clear') {
-    text = 'clear';
+    text = 'clear screen';
   }
   else if (el.id == 'outline') {
-    text = 'outline';
+    text = 'toggle grid outline';
   }
   else if (el.id == 'color-picker') {
     text = 'pick a new color';
   }
   else if (el.id == 'random-color') {
-    text = 'random color';
+    text = 'get a random color';
   }
   else if (el.id.includes('#', 0)) {
     text = el.id;
@@ -198,27 +212,25 @@ document.addEventListener("click", (e) => {
 colorPicker.addEventListener("input", function() {
   lastColor = currColor;
   currColor = colorPicker.value;
-  console.log(lastColor);
-  console.log(currColor);
+});
+
+randomColor.addEventListener("click", (e) => {
+  getRandomColor(e);
 });
 
 // select default color
 colorDefault.addEventListener("click", (e) => {
-  currColor = e.target.style.backgroundColor;
-  lastColor = currColor;
+  currColor = e.target.style.backgroundColor;     // here, currColor = lastColor since we don't keep track of 
+  lastColor = currColor;                          // default colors in the color history
 });
 
 // select existing color
 colorTools.addEventListener("click", (e) => {
   // check if selected color history element still has default class (user has not selected more colors than slots)
   if (!e.target.classList.contains('empty')) {
-    currColor = e.target.style.backgroundColor;
     lastColor = currColor;
+    currColor = rgb2hex(e.target.style.backgroundColor);
   }
-});
-
-randomColor.addEventListener("click", (e) => {
-  getRandomColor(e);
 });
 
 // detect mouse down to paint
@@ -236,9 +248,9 @@ gridContainer.addEventListener("mousedown", (e) => {
 
 
 
-/* ----------------- */
-/* --- FUNCTIONS --- */
-/* ----------------- */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 
 // create a wxw grid
@@ -303,10 +315,15 @@ let colorHistoryList = [];
 
 // when selecting another color, add color to colorHistory 'queue' and remove last in 'queue'
 function shiftColorHistory() {
-  if (currColor != lastColor) {                                           // if color has changed
-    if (!colorHistoryList.includes(currColor)) {                          // if color history array already contains newly selected color, do not add again
-      if (colorTools.querySelectorAll('.empty').length == 0) {            // if all color history elements have been changed (already cycled through the queue),
-        for (var i = colorTools.children.length - 1; i > 0; i--) {        //  then in descending order, replace the preceding element's color and id
+  // if color has changed
+  console.log(currColor + ' - ' + lastColor);
+  if (currColor != lastColor) {                                          
+    // if color history array DOES NOT contains current selected color, then add
+    console.log(colorHistoryList);
+    if (!colorHistoryList.includes(currColor) ) {  
+      // if all color history elements have been changed (already cycled through the queue), then in descending order, replace the preceding element's color and id
+      if (colorTools.querySelectorAll('.empty').length == 0) {
+        for (var i = colorTools.children.length - 1; i > 0; i--) {
           colorTools.children[i].style.backgroundColor = colorTools.children[i-1].style.backgroundColor;
           colorTools.children[i].setAttribute('id', colorTools.children[i-1].getAttribute('id'));
         }
@@ -315,18 +332,33 @@ function shiftColorHistory() {
       colorTools.children[colorIndex].style.backgroundColor = currColor;  // set next color history 
       colorTools.children[colorIndex].classList.remove('empty');          // remove default class; when all elements no longer have this class, it will return to front of queue
       colorTools.children[colorIndex].setAttribute('id', currColor);      // set id to color hex
+      console.log(currColor);
       colorIndex++;
       lastColor = currColor;
     }
+    // if color history array DOES already contain current selected color, then do not add; shift to front
+    else {
+      let ci = colorHistoryList.indexOf(currColor);           // get index of current color's array position
+      // if color history has more than 1 color
+      if (colorHistoryList.length > 1) {
+        for (var i = ci; i > 0; i--) {                        // replace preceding element's color and id from index
+          colorTools.children[i].style.backgroundColor = colorTools.children[i-1].style.backgroundColor;
+          colorTools.children[i].setAttribute('id', colorTools.children[i-1].getAttribute('id'));
+        }
+        colorTools.children[0].style.backgroundColor = currColor
+        colorTools.children[0].setAttribute('id', currColor);
+      }
+    }
   }
-  let arr = Array.from(colorTools.children).map(x => x.id);               // update array with current color history
+  let arr = Array.from(colorTools.children).map(x => x.id);   // update array with current color history
   colorHistoryList = arr.filter(Boolean);
 }
 
+// generate random color 
 function getRandomColor(e) {
-  e.target.style.backgroundColor = 'rgb(' + [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)].join(',') + ')';
+  e.target.style.backgroundColor = '#' + Math.floor(Math.random()*16777215).toString(16);
   lastColor = currColor;
-  currColor =  e.target.style.backgroundColor;
+  currColor =  rgb2hex( e.target.style.backgroundColor);
 }
 
 // ODIN - extra credit
