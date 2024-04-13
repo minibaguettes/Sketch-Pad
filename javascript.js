@@ -79,6 +79,7 @@ let lastColor = '';
 let temp;                   // temp to hold userInput
 let colorIndex = 0;         // variable of index of color history used to loop through
 let mode = 'paint';         // mode used to distinguish between paiting with selected color or painting with white (ERASER)
+let ol = false;
 
 // convert rgb values to hex
 const rgb2hex = (rgb) => `#${rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/).slice(1).map(n => parseInt(n, 10).toString(16).padStart(2, '0')).join('')}`
@@ -197,12 +198,14 @@ document.addEventListener("click", (e) => {
       for (var i = 0; i < gridContainer.childNodes.length; i++) {
         gridContainer.childNodes[i].classList.remove('outline');
       }
+      ol = false;
     }
     else {
       gridContainer.classList.add('grid-color');
       for (var i = 0; i < gridContainer.childNodes.length; i++) {
         gridContainer.childNodes[i].classList.add('outline');
       }
+      ol = true;
     }
     el.classList.toggle('active-tool'); // if outline is active, set bg color; if outline is disabled, default color
   }
@@ -253,11 +256,18 @@ gridContainer.addEventListener("mousedown", (e) => {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 
+
 // create a wxw grid
 function createGrid(w) {
   for (let i = 0; i < (w*w); i++) {
     let square = document.createElement('div');
     square.classList.add('square');
+    if (ol) {
+      square.classList.add('outline');
+    }
+    else {
+      square.classList.remove('outline');
+    }
     square.addEventListener('mouseover', paintClick);
     square.addEventListener('mousedown', paintClick);
     document.documentElement.style.setProperty(`--size`, `${w}`); // create css variable 'size' and set it to user's desired value
